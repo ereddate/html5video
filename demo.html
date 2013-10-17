@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<style>
+			body{padding:0;margin:0;text-align:center;background:#fff;}
+		</style>
+		<link href="jq.html5video.css" type="text/css" rel="stylesheet" />
+		<script src="jquery.1.9.1.js"></script>
+		<script src="jq.html5video.js"></script>
+		<script>
+			jQuery(function() {
+				html5video({
+					url: ["http://content.bitsontherun.com/videos/q1fx20VZ-52qL9xLP.mp4"], //视频类型列表，暂不支持多视频连播
+					width: "800",
+					height: "400",
+					loop: true, //是否循环播放
+					autoplay: true, //是否自动播放
+					textTracks:[  //字幕
+						{
+							context: "test1 test",
+							start: 0.000,
+							end: 0.500
+						},
+						{
+							context: '<a href="#" target="_blank">AD test</a> adadfasdfas,asdfasdf.',
+							start: 0.600,
+							end: 1.000
+						},
+						{
+							context: "test2 test",
+							start: 1.500,
+							end: 2.000
+						}
+					]
+				});
+			});
+		</script>
+	</head>
+	<body>
+		<div id="video" class="video_main">
+			<video id="video_html5_api" class="videohome">
+				您的浏览器不支持HTML5 VIDEO标签 或 不支持此视频的格式，请更换其他浏览器观看。
+			</video>
+		</div>
+	</body>
+</html>
