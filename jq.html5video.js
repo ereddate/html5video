@@ -67,26 +67,7 @@
 		var elemcode = jQuery("<ul></ul>"),
 			gtimeout;
 		jQuery.each(ops, function(i, value) {
-			var li = jQuery("<li></li>");
-			elemcode.append(li);
-			switch (value.type) {
-				case "text":
-					li.addClass('contextMenu_text').html('<span>' + value.title + "</span>");
-					break;
-				case "line":
-					li.addClass("contextMenu_line");
-					break;
-				case "button":
-					li.addClass("contextMenu_button").html('<a href="">' + value.title + '</a>').click(function(e) {
-						e.preventDefault();
-						menu.hide();
-						value.callback(elem[0], jQuery(this), e);
-					});
-					break;
-				case "input":
-					li.addClass('contextMenu_input').html('<input type="text" value="' + value.title + '" />');
-					break;
-			}
+			var li = jQuery.contextMenu.addItem(value, elemcode, menu, elem);
 			menu.append(elemcode);
 		});
 		menu.hover(function() {
@@ -98,6 +79,38 @@
 			}, 1000);
 		});
 		return menu;
+	};
+	jQuery.contextMenu.addItem = function(value, elemcode, menu, elem) {
+		var li = jQuery("<li></li>");
+		elemcode.append(li);
+		switch (value.type) {
+			case "text":
+				li.addClass('contextMenu_text').html('<span>' + value.title + "</span>");
+				break;
+			case "line":
+				li.addClass("contextMenu_line");
+				break;
+			case "button":
+				li.addClass("contextMenu_button").html('<a href="">' + value.title + '</a>').click(function(e) {
+					e.preventDefault();
+					menu.hide();
+					value.callback(elem[0], jQuery(this), e);
+				});
+				break;
+			case "input":
+				li.addClass('contextMenu_input').html('<input type="text" value="' + value.title + '" />');
+				break;
+			case "menu":
+				var smenubox = jQuery("<div></div>"),
+					smenu = jQuery("<menu></menu>").addClass("contextMenu_menu_list");
+				jQuery.each(value.menu, function(i, snmenu) {
+					smenu.append(jQuery.contextMenu.addItem(snmenu, smenu, menu, elem));
+				});
+				smenubox.html('<span>' + value.title + '</span>').append(smenu);
+				li.addClass('contextMenu_menu').append(smenubox);
+				break;
+		}
+		return li;
 	};
 
 	/*设备识别*/
@@ -179,7 +192,7 @@
 						return types[type];
 					},
 						onloadstart = function() {
-							ontimeinfo("正在连接视频");
+							ontimeinfo("连接视频");
 						},
 						ondurationchange = function() {
 							videolen = this.duration;
@@ -188,13 +201,13 @@
 							timelen.show().html("0:00/" + (max && max != "Infinity" ? max : "..."));
 						},
 						onloadedmetadata = function() {
-							ontimeinfo("正在获取视频信息");
+							ontimeinfo("获取信息");
 						},
 						onloadeddata = function() {
-							ontimeinfo("准备加载视频");
+							ontimeinfo("准备缓冲");
 						},
 						onprogress = function() {
-							ontimeinfo("正在加载视频");
+							ontimeinfo("缓冲中");
 							if (video.paused) {
 								jQuery(".loading").show();
 							}
@@ -285,7 +298,7 @@
 								mutedbutton.addClass("mutedbutton").removeClass('volumebutton');
 								volumeButton[0].value = 0;
 							} else {
-								ontimeinfo("修改音量");
+								ontimeinfo("正常");
 								mutedbutton.addClass("volumebutton").removeClass('mutedbutton');
 								volumeButton[0].value = volume;
 							}
@@ -392,7 +405,6 @@
 							};
 						},
 						onvideo_mousedown = function(e) {
-							console.log(e.button)
 							switch (e.button) {
 								case 0:
 									break;
@@ -434,45 +446,75 @@
 											}, {
 												type: "line"
 											}, {
-												type: "button",
-												title: video.muted ? "放音" : "静音",
-												callback: function(video, el, evt) {
-													if (video.muted) {
-														video.volume = 1;
-														video.muted = false;
-														el.html("静音");
-													} else {
-														video.volume = 0;
-														video.muted = true;
-														el.html("放音");
+												type: "menu",
+												title: "声音",
+												menu: [{
+													type: "button",
+													title: video.muted ? "正常" : "静音",
+													callback: function(video, el, evt) {
+														if (video.muted) {
+															video.volume = 1;
+															video.muted = false;
+															el.html("静音");
+														} else {
+															video.volume = 0;
+															video.muted = true;
+															el.html("正常");
+														}
 													}
-												}
-											}, {
-												type: "button",
-												title: "最大声音",
-												callback: function(video, el, evt) {
-													video.volume = 1;
-												}
-											}, {
-												type: "button",
-												title: "中等声音",
-												callback: function(video, el, evt) {
-													video.volume = 0.6;
-												}
-											}, {
-												type: "button",
-												title: "最小声音",
-												callback: function(video, el, evt) {
-													video.volume = 0.2;
-												}
+												}, {
+													type: "line"
+												}, {
+													type: "button",
+													title: "最大声音",
+													callback: function(video, el, evt) {
+														video.volume = 1;
+													}
+												}, {
+													type: "button",
+													title: "中等声音",
+													callback: function(video, el, evt) {
+														video.volume = 0.6;
+													}
+												}, {
+													type: "button",
+													title: "最小声音",
+													callback: function(video, el, evt) {
+														video.volume = 0.2;
+													}
+												}]
 											}, {
 												type: "line"
 											}, {
-												type: "button",
-												title: "访问开发者(ereddate)网站",
-												callback: function() {
-													win.open("https://github.com/ereddate");
-												}
+												type: "menu",
+												title: "访问网站",
+												menu: [{
+													type: "button",
+													title: "jlpm框架",
+													callback: function() {
+														win.open("https://github.com/ereddate/jlpm");
+													}
+												},{
+													type: "button",
+													title: "easyjs模块管理",
+													callback: function() {
+														win.open("https://github.com/ereddate/easyjs");
+													}
+												},{
+													type: "button",
+													title: "html5video播放器",
+													callback: function() {
+														win.open("https://github.com/ereddate/html5video");
+													}
+												},{
+													type:"line"
+												},{
+													type: "button",
+													title: "开发者(ereddate)微博",
+													callback: function() {
+														win.open("http://weibo.com/iliulancom");
+													}
+												}]
 											}]);
 
 											var top = getXY(menu, e).top,
@@ -620,10 +662,10 @@
 						},
 						ontimelogo = function(info) {
 							videoLogo.slideDown().html(this.name + info);
-							clearTimeout(logoTimeout);
+							/*clearTimeout(logoTimeout);
 							logoTimeout = setTimeout(function() {
 								videoLogo.slideUp();
-							}, 7000);
+							}, 7000);*/
 						};
 					try {
 						ontimelogo.call(this, ops.logo && "/" + ops.logo || "");
