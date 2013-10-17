@@ -55,15 +55,64 @@
 		}
 	};
 
+	/* 右键菜单 */
+
+	jQuery.contextMenu = function(elem, ops) {
+		if (jQuery("#contextMenu_main").length > 0) jQuery("#contextMenu_main").remove();
+		var menu = jQuery("<div></div>").attr({
+			id: "contextMenu_main",
+			class: "contextMenu_main_css"
+		});
+		elem.parent().append(menu);
+		var elemcode = jQuery("<ul></ul>"),
+			gtimeout;
+		jQuery.each(ops, function(i, value) {
+			var li = jQuery("<li></li>");
+			elemcode.append(li);
+			switch (value.type) {
+				case "text":
+					li.addClass('contextMenu_text').html('<span>' + value.title + "</span>");
+					break;
+				case "line":
+					li.addClass("contextMenu_line");
+					break;
+				case "button":
+					li.addClass("contextMenu_button").html('<a href="">' + value.title + '</a>').click(function(e) {
+						e.preventDefault();
+						menu.hide();
+						value.callback(elem[0], jQuery(this), e);
+					});
+					break;
+				case "input":
+					li.addClass('contextMenu_input').html('<input type="text" value="' + value.title + '" />');
+					break;
+			}
+			menu.append(elemcode);
+		});
+		menu.hover(function() {
+			clearTimeout(gtimeout);
+		}, function() {
+			clearTimeout(gtimeout);
+			gtimeout = setTimeout(function() {
+				menu.hide();
+			}, 1000);
+		});
+		return menu;
+	};
+
+	/*设备识别*/
+
 	var ua = navigator.userAgent.toLowerCase(),
 		isie = /(msie) ([\w.]+)/.exec(ua) && /(msie) ([\w.]+)/.exec(ua)[1] == "msie",
 		p = navigator.platform.toLowerCase(),
 		ispc = (p.match(/win|mac|x11|linux/i) != null && !/win|mac|x11|linux/.test(p.match(/win|mac|x11|linux/i)[0])) || !/cros/.test(/(cros) [a-z 0-9]+ ([\d.]+)/.exec(ua));
 
+	/*播放器*/
+
 	videoplayer.fn = videoplayer.prototype = {
 		constructor: videoplayer,
 		name: "html5video",
-		ver: "0.1.0",
+		ver: "0.1.1",
 		init: function(ops) {
 			var canHtml5 = (function() {
 				return doc.createElement("video").canPlayType;
@@ -78,6 +127,7 @@
 
 				var video = jQuery("#video_html5_api");
 				if (video.length > 0) {
+					var self = this;
 					var canpt = ['video/mp4; codecs="avc1.42E01E, mp4a.40.2"', 'video/ogg; codecs="theora, vorbis"', 'video/webm; codecs="vp8, vorbis"'],
 						canpt_end = [],
 						options = {
@@ -106,7 +156,7 @@
 						connectNumMax = 3,
 						playnum = 0,
 						isCanplay = false,
-						isFullscreen = false,
+						//isFullscreen = false,
 						navtype = "",
 						autoplay = true,
 						infoTimeout = null,
@@ -327,20 +377,118 @@
 							video.currentTime = playtime[0].value;
 							video.play();
 						},
+						getXY = function(menu, e) {
+							var mini = 50,
+								miniY = video.fullscreened ? mini : jQuery(videobox).offset().top + mini,
+								maxY = video.fullscreened ? jQuery(videobox).height() : jQuery(videobox).offset().top + jQuery(videobox).height(),
+								miniX = video.fullscreened ? mini : jQuery(videobox).offset().left + mini,
+								maxX = video.fullscreened ? jQuery(videobox).width() : jQuery(videobox).offset().left + jQuery(videobox).width();
+
+							var top = e.clientY <= miniY ? 0 : (e.clientY + mini) >= maxY ? e.clientY - menu.height() : e.clientY - mini,
+								left = e.clientX <= miniX ? 0 : (e.clientX + menu.width()) >= maxX ? e.clientX - jQuery(videobox).offset().left - menu.width() : e.clientX - jQuery(videobox).offset().left - mini;
+							return {
+								top: top,
+								left: left
+							};
+						},
 						onvideo_mousedown = function(e) {
+							console.log(e.button)
 							switch (e.button) {
 								case 0:
 									break;
 								case 1:
 									break;
 								case 2:
-									video.oncontextmenu = new Function("return false;");
+									video.oncontextmenu = function(e) {
+										e.preventDefault();
+										if (isCanplay) {
+											var menu = jQuery.contextMenu(jQuery("#video_html5_api"), [{
+												type: "text",
+												title: "版本 " + self.ver
+											}, {
+												type: "line"
+											}, {
+												type: "button",
+												title: video.paused ? "播放视频" : "暂停播放",
+												callback: function(video, el, evt) {
+													if (video.paused) {
+														video.play();
+														el.html("暂停播放");
+													} else {
+														video.pause();
+														el.html("播放视频");
+													}
+												}
+											}, {
+												type: "button",
+												title: video.fullscreened ? "取消全屏" : "开启全屏",
+												callback: function(video, el, evt) {
+													if (video.fullscreened) {
+														onfullscreen_click_msie();
+														el.html("开启全屏");
+													} else {
+														onfullscreen_click_msie();
+														el.html("取消全屏");
+													}
+												}
+											}, {
+												type: "line"
+											}, {
+												type: "button",
+												title: video.muted ? "放音" : "静音",
+												callback: function(video, el, evt) {
+													if (video.muted) {
+														video.volume = 1;
+														video.muted = false;
+														el.html("静音");
+													} else {
+														video.volume = 0;
+														video.muted = true;
+														el.html("放音");
+													}
+												}
+											}, {
+												type: "button",
+												title: "最大声音",
+												callback: function(video, el, evt) {
+													video.volume = 1;
+												}
+											}, {
+												type: "button",
+												title: "中等声音",
+												callback: function(video, el, evt) {
+													video.volume = 0.6;
+												}
+											}, {
+												type: "button",
+												title: "最小声音",
+												callback: function(video, el, evt) {
+													video.volume = 0.2;
+												}
+											}, {
+												type: "line"
+											}, {
+												type: "button",
+												title: "访问开发者(ereddate)网站",
+												callback: function() {
+													win.open("https://github.com/ereddate");
+												}
+											}]);
+
+											var top = getXY(menu, e).top,
+												left = getXY(menu, e).left;
+											menu.css({
+												top: top,
+												left: left
+											}).show();
+										}
+									};
 									break;
 							}
 						},
 						onfullscreen_click = function() {
 							var videoboxA = videobox[0];
-							if (!isFullscreen) {
+							if (!video.fullscreened) {
 								if (video.webkitRequestFullScreen) {
 									video.webkitRequestFullScreen();
 									navtype = "webkit";
@@ -351,7 +499,7 @@
 									videoboxA.requestFullscreen();
 									navtype = "";
 								}
-								isFullscreen = true;
+								video.fullscreened = true;
 								jQuery(video).css("height", "100%");
 								fullscreenButton.addClass('nofullscreen').removeClass('fullscreen');
 								ontimeinfo("进入全屏(按ESC键退出全屏)");
@@ -363,7 +511,7 @@
 								} else if (doc.exitFullscreen) {
 									doc.exitFullscreen();
 								}
-								isFullscreen = false;
+								video.fullscreened = false;
 								jQuery(video).css("height", "100%");
 								fullscreenButton.addClass('fullscreen').removeClass('nofullscreen');
 								ontimeinfo("退出全屏");
@@ -371,12 +519,12 @@
 							video.width = videobox.width();
 						},
 						onfullscreen_click_msie = function() {
-							if (!isFullscreen) {
+							if (!video.fullscreened) {
 								videobox.addClass('msiefullscreen').css({
 									"width": "100%",
 									"height": "100%"
 								});
-								isFullscreen = true;
+								video.fullscreened = true;
 								jQuery(video).css("height", "100%");
 								fullscreenButton.addClass('nofullscreen').removeClass('fullscreen');
 								ontimeinfo("进入全屏(按ESC键退出全屏)");
@@ -385,7 +533,7 @@
 									"width": ops.width,
 									"height": ops.height
 								});
-								isFullscreen = false;
+								video.fullscreened = false;
 								jQuery(video).css("height", "100%");
 								fullscreenButton.addClass('fullscreen').removeClass('nofullscreen');
 								ontimeinfo("退出全屏");
@@ -393,12 +541,12 @@
 							video.width = videobox.width();
 						},
 						onfullscreenkeyup_msie = function(e) {
-							if (e.keyCode == 27 && isFullscreen) {
+							if (e.keyCode == 27 && video.fullscreened) {
 								videobox.removeClass('msiefullscreen').css({
 									"width": ops.width,
 									"height": ops.height
 								});
-								isFullscreen = false;
+								video.fullscreened = false;
 								jQuery(video).css("height", "100%");
 								video.width = videobox.width();
 								fullscreenButton.addClass('fullscreen').removeClass('nofullscreen');
@@ -407,7 +555,7 @@
 						},
 						onfullscreenchange = function() {
 							if (doc.fullscreen || doc.webkitIsFullScreen || doc.mozFullScreen || doc.fullscreenElement || false) {} else {
-								isFullscreen = false;
+								video.fullscreened = false;
 								jQuery(video).css("height", "100%");
 								video.width = videobox.width();
 								fullscreenButton.addClass('fullscreen').removeClass('nofullscreen');
@@ -553,6 +701,7 @@
 							video.height = videobox.height();
 							video.defaultMuted = options.defaultMuted;
 							video.volume = 1;
+							video.fullscreened = false;
 							var texttrack = video.addTextTrack("caption");
 							jQuery.each(ops.textTracks, function(i, value) {
 								texttrack.addCue(new TextTrackCue(value.context, value.start, value.end, "", "", "", true));

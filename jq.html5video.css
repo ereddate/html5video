@@ -26,6 +26,16 @@
 .caption{opacity:0.5;filter:alpha(opacity=50);text-align:center;color:#fff;font-size:120%;font-weight:700;position:absolute;bottom:70px;left:10px;right:10px;text-shadow:2px 2px 5px #333;}
 .caption a{color:#fff;}
 
+
+.contextMenu_main_css{display:none;position:absolute;top:0;left:0;background:#000;color:#fff;width:200px;background-color: rgba(0,0,0,0.5);-moz-border-radius:5px;-webkit-border-radius: 5px;border-radius:5px;}
+.contextMenu_main_css ul{list-style:none;margin:0;padding:0;text-align:left;font-size:12px;}
+.contextMenu_main_css ul li:hover{background-color:rgba(225,225,225,0.8);color:#000;}
+.contextMenu_main_css ul li:hover a{color:#000;}
+.contextMenu_line{background:#333;height:1px;}
+.contextMenu_text,.contextMenu_input{line-height:30px;padding:0 10px;-moz-border-radius:5px;-webkit-border-radius: 5px;border-radius:5px;}
+.contextMenu_input input{width:170px;line-height:12px;}
+.contextMenu_button{line-height:30px;padding:0 10px;cursor:pointer;-moz-border-radius:5px;-webkit-border-radius: 5px;border-radius:5px;}
+.contextMenu_button a{color:#fff;text-decoration:none;}
 .loading {
   position: absolute;
   top:45%;
