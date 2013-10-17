@@ -1,3 +1,14 @@
+/*
+	目前只支持IE10、CHROME、OPERA、SAFARI等支持HTML5 VIDEO标签的浏览器，
+	对于全屏功能因各浏览器支持情况不同展示效果也不同，但都已经实现全屏功能。
+	调用格式：
+	html5video({
+		preload: "auto",
+		poster: "",
+		url:["demo1.mp4","demo.ogv"],
+		autoplay:false
+	});
+*/
 (function(win) {
 	var doc = win.document;
 	var videoplayer = function(options) {
