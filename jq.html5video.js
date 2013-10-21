@@ -124,7 +124,7 @@
 
 	videoplayer.fn = videoplayer.prototype = {
 		constructor: videoplayer,
-		name: "html5video",
+		name: "HTML5VIDEO",
 		ver: "0.1.1",
 		init: function(ops) {
 			var canHtml5 = (function() {
@@ -136,7 +136,7 @@
 					"width": ops.width,
 					"height": ops.height
 				});
-				videobox.append('<div id="video_control" class="video_control"><button type="button" name="play" class="playbutton"></button><input type="range" min="0" max="0" step="0" class="video_range" name="playtime" /><span id="video_len" class="video_len">0.00/0.00</span><div class="video_slider"><div class="video_slider_backA"><div class="video_buffer"></div><div class="video_slider_back"></div></div><div class="video_slider_button"></div></div><button type="button" name="muted" class="volumebutton"></button><input type="range" min="0" max="10" step="0" name="playvolume" class="playvolume" /><button type="button" name="fullscreen" class="fullscreen"></button></div><div id="video_logo" class="video_logo">' + this.name + '</div><div id="video_info" class="video_info"></div><div class="loading" style="display:none"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>');
+				videobox.append('<div class="loading" style="display:none"><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div><div class="dot"></div></div><div class="centerplay"></div><div id="video_control" class="video_control"><button type="button" name="play" class="playbutton"></button><input type="range" min="0" max="0" step="0" class="video_range" name="playtime" /><span id="video_len" class="video_len">0.00/0.00</span><div class="video_slider"><div class="video_slider_backA"><div class="video_buffer"></div><div class="video_slider_back"></div></div><div class="video_slider_button"></div></div><button type="button" name="muted" class="volumebutton"></button><input type="range" min="0" max="10" step="0" name="playvolume" class="playvolume" /><button type="button" name="fullscreen" class="fullscreen"></button></div><div id="video_logo" class="video_logo"><span>Power by</span> ' + this.name + '</div><div id="video_info" class="video_info"></div>');
 
 				var video = jQuery("#video_html5_api");
 				if (video.length > 0) {
@@ -164,6 +164,8 @@
 						videoInfo = jQuery("#video_info"),
 						videoLogo = jQuery("#video_logo"),
 						videoControl = jQuery(".video_control"),
+						videoCenterplay = jQuery(".centerplay"),
+						videoLoading = jQuery(".loading"),
 						max = 0,
 						connectNum = 0,
 						connectNumMax = 3,
@@ -207,13 +209,15 @@
 							ontimeinfo("准备缓冲");
 						},
 						onprogress = function() {
-							ontimeinfo("缓冲中");
-							if (video.paused) {
-								jQuery(".loading").show();
-							}
 							if (this.buffered.length > 0) {
-								var max = (this.duration.toFixed(1) / 60).toFixed(2);
+								if (video.buffered.end(i)!=video.duration){
+									ontimeinfo("缓冲中");
+									videoLoading.show();
+								}else{
+									videoLoading.hide();
+								}
 								var i = this.buffered.length - 1;
+								var max = (this.duration.toFixed(1) / 60).toFixed(2);
 								var left = (video.buffered.start(i).toFixed(1) / 60).toFixed(2) || 0,
 									width = (video.buffered.end(i).toFixed(1) / 60).toFixed(2) || 0;
 								width = ((width / max)) * videoSlider.width();
@@ -236,7 +240,7 @@
 							}, "slow");
 						},
 						oncanplaythrough = function() {
-							if ((autoplay && status == "defalut") || (video.looped && status == "ended") || (status == "defalut")) video.play();
+							if ((autoplay && status == "defalut") || (video.looped && (status == "ended" || this.currentTime == 0)) || status == "defalut") video.play();
 						},
 						onseeking = function() {
 
@@ -284,10 +288,12 @@
 							} else {
 								ontimeinfo("暂停播放", "pause");
 							}
+							videoCenterplay.show();
 							playbutton.addClass("playbutton").removeClass('pausebutton');
 						},
 						onplaying = function() {
-							jQuery(".loading").hide();
+							//videoLoading.hide();
+							videoCenterplay.hide();
 							ontimeinfo("开始播放", "play");
 							playbutton.addClass("pausebutton").removeClass('playbutton');
 						},
@@ -321,7 +327,7 @@
 							} else {
 								video.pause();
 								ontimeinfo("网络错误：对不起，您的浏览器无法播放此视频");
-								jQuery(".loading").hide();
+								videoLoading.hide();
 							}
 						},
 						onsuspend = function() {
@@ -379,7 +385,7 @@
 								}
 								status = "ended";
 								video.pause();
-								jQuery(".loading").hide();
+								videoLoading.hide();
 							}
 						},
 						onplaychange = function() {
@@ -671,11 +677,15 @@
 							videoInfo.slideDown().html(info);
 							clearTimeout(infoTimeout);
 							infoTimeout = setTimeout(function() {
-								videoInfo.slideUp().html("");
+								videoInfo.animate({
+									opacity: 0
+								},"slow", function(){
+									videoInfo.html("");
+								});
 							}, 5000);
 						},
 						ontimelogo = function(info) {
-							videoLogo.slideDown().html(this.name + info);
+							videoLogo.slideDown().html("<span>Power by</span> "+this.name + info);
 							/*clearTimeout(logoTimeout);
 							logoTimeout = setTimeout(function() {
 								videoLogo.slideUp();
@@ -724,6 +734,7 @@
 							//} else {
 							fullscreenButton.on("click", onfullscreen_click_msie);
 							jQuery(doc).on("keyup", onfullscreenkeyup_msie);
+							videoCenterplay.on("click", onplaychange);
 							//}
 							playtime.on("click", onrangclick).on("change", onrangchange);
 							volumeButton.on("change", onrangvolume);
