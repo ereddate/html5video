@@ -141,7 +141,7 @@
 				var video = jQuery("#video_html5_api");
 				if (video.length > 0) {
 					var self = this;
-					var canpt = ['video/mp4; codecs="avc1.42E01E, mp4a.40.2"', 'video/ogg; codecs="theora, vorbis"', 'video/webm; codecs="vp8, vorbis"'],
+					var canpt = ['video/mp4', 'video/ogg', 'video/webm'],
 						canpt_end = [],
 						options = {
 							preload: "auto",
@@ -236,7 +236,7 @@
 							}, "slow");
 						},
 						oncanplaythrough = function() {
-							if (autoplay && status == "defalut" || options.loop && status == "ended" || status == "defalut") video.play();
+							if ((autoplay && status == "defalut") || (video.looped && status == "ended") || (status == "defalut")) video.play();
 						},
 						onseeking = function() {
 
@@ -432,6 +432,20 @@
 													}
 												}
 											}, {
+												type:"button",
+												title: video.looped ? "停止循环" : "循环播放",
+												callback: function(video, el, evt){
+													if (video.looped){
+														video.loop = false;
+														el.html("循环播放");
+														video.looped = false;
+													}else{
+														video.loop = true;
+														el.html("停止循环");
+														video.looped = true;
+													}
+												}
+											},{
 												type: "button",
 												title: video.fullscreened ? "取消全屏" : "开启全屏",
 												callback: function(video, el, evt) {
@@ -744,6 +758,7 @@
 							video.defaultMuted = options.defaultMuted;
 							video.volume = 1;
 							video.fullscreened = false;
+							video.looped = options.loop;
 							var texttrack = video.addTextTrack("caption");
 							jQuery.each(ops.textTracks, function(i, value) {
 								texttrack.addCue(new TextTrackCue(value.context, value.start, value.end, "", "", "", true));
