@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta charset="utf-8" />
+		<meta id="tp_page" name="tp_page" content="html5video_videoedit_v0_0_1" />
+	    <link href="jq.html5video-seajs.css" type="text/css" rel="stylesheet" />
+        <script src="jquery-seajs-libs.js"></script>
+        <script src="config-seajs.js"></script>
+	</head>
+	<body>
+		<div id="video" class="video_main">
+			<video id="video_html5_api" class="videohome">
+				您的浏览器不支持HTML5 VIDEO标签 或 不支持此视频的格式，请更换其他浏览器观看。
+			</video>
+		</div>
+
+		<!-- 打节点功能 -->
+		<button type="button" class="forward">前进&gt;</button> <button type="button" class="fallback">后退&lt;</button>
+		<button type="button" class="forward_fast">快进&gt;&gt;</button> <button type="button" class="fallback_fast">快退&lt;&lt;</button>
+		<div class="videopoint">
+			<div class="videopoint_box"></div>
+		</div>
+		<div class="editpoint">
+			<button class="video_creatpoints">创建</button>
+			<div class="editpoint_control"></div>
+		</div>
+		<div class="pointinfo" style="width:100%;height:100px;overflow:scroll;overflow-x:hidden;"></div>
+
+	</body>
+</html>
